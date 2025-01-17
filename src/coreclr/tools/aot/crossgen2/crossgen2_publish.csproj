@@ -7,7 +7,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed Condition="'$(TargetArchitecture)' != 'riscv64'">true</PublishTrimmed>
     <RuntimeIdentifier>$(PackageRID)</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>

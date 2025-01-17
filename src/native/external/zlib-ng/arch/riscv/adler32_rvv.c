@@ -34,10 +34,10 @@ static inline uint32_t adler32_rvv_impl(uint32_t adler, uint8_t* restrict dst, c
     }
 
     size_t left = len;
-    size_t vl = __riscv_vsetvlmax_e8m1();
+    size_t vl = vsetvlmax_e8m1();
     vl = vl > 256 ? 256 : vl;
-    vuint32m4_t v_buf32_accu = __riscv_vmv_v_x_u32m4(0, vl);
-    vuint32m4_t v_adler32_prev_accu = __riscv_vmv_v_x_u32m4(0, vl);
+    vuint32m4_t v_buf32_accu = (vuint32m4_t)vmv_v_x_u32m4(0l, vl);
+    vuint32m4_t v_adler32_prev_accu = (vuint32m4_t)vmv_v_x_u32m4(0l, vl);
     vuint16m2_t v_buf16_accu;
 
     /*
@@ -55,57 +55,59 @@ static inline uint32_t adler32_rvv_impl(uint32_t adler, uint8_t* restrict dst, c
     size_t nmax_limit = (NMAX / block_size);
     size_t cnt = 0;
     while (left >= block_size) {
-        v_buf16_accu = __riscv_vmv_v_x_u16m2(0, vl);
+        v_buf16_accu = vmv_v_x_u16m2(0l, vl);
         size_t subprob = block_size;
         while (subprob > 0) {
-            vuint8m1_t v_buf8 = __riscv_vle8_v_u8m1(src, vl);
-            if (COPY) __riscv_vse8_v_u8m1(dst, v_buf8, vl);
-            v_adler32_prev_accu = __riscv_vwaddu_wv_u32m4(v_adler32_prev_accu, v_buf16_accu, vl);
-            v_buf16_accu = __riscv_vwaddu_wv_u16m2(v_buf16_accu, v_buf8, vl);
+            vuint8m1_t v_buf8 = (vuint8m1_t)vle8_v_u8m1(src, vl);
+            if (COPY) vse8_v_u8m1(dst, v_buf8, vl);
+            v_adler32_prev_accu = vwaddu_wv_u32m4(v_adler32_prev_accu, v_buf16_accu, vl);
+            v_buf16_accu = vwaddu_wv_u16m2(v_buf16_accu, v_buf8, vl);
             src += vl;
             if (COPY) dst += vl;
             subprob -= vl;
         }
-        v_adler32_prev_accu = __riscv_vmacc_vx_u32m4(v_adler32_prev_accu, block_size / vl, v_buf32_accu, vl);
-        v_buf32_accu = __riscv_vwaddu_wv_u32m4(v_buf32_accu, v_buf16_accu, vl);
+        v_adler32_prev_accu = vmacc_vx_u32m4(v_adler32_prev_accu, block_size / vl, v_buf32_accu, vl);
+        v_buf32_accu = vwaddu_wv_u32m4(v_buf32_accu, v_buf16_accu, vl);
         left -= block_size;
         /* do modulo once each block of NMAX size */
         if (++cnt >= nmax_limit) {
-            v_adler32_prev_accu = __riscv_vremu_vx_u32m4(v_adler32_prev_accu, BASE, vl);
+            v_adler32_prev_accu = vremu_vx_u32m4(v_adler32_prev_accu, BASE, vl);
             cnt = 0;
         }
     }
     /* the left len <= 256 now, we can use 16-bit accum safely */
-    v_buf16_accu = __riscv_vmv_v_x_u16m2(0, vl);
+    v_buf16_accu = vmv_v_x_u16m2(0l, vl);
     size_t res = left;
     while (left >= vl) {
-        vuint8m1_t v_buf8 = __riscv_vle8_v_u8m1(src, vl);
-        if (COPY) __riscv_vse8_v_u8m1(dst, v_buf8, vl);
-        v_adler32_prev_accu = __riscv_vwaddu_wv_u32m4(v_adler32_prev_accu, v_buf16_accu, vl);
-        v_buf16_accu = __riscv_vwaddu_wv_u16m2(v_buf16_accu, v_buf8, vl);
+        vuint8m1_t v_buf8 = vle8_v_u8m1(src, vl);
+        if (COPY) vse8_v_u8m1(dst, v_buf8, vl);
+        v_adler32_prev_accu = vwaddu_wv_u32m4(v_adler32_prev_accu, v_buf16_accu, vl);
+        v_buf16_accu = vwaddu_wv_u16m2(v_buf16_accu, v_buf8, vl);
         src += vl;
         if (COPY) dst += vl;
         left -= vl;
     }
-    v_adler32_prev_accu = __riscv_vmacc_vx_u32m4(v_adler32_prev_accu, res / vl, v_buf32_accu, vl);
-    v_adler32_prev_accu = __riscv_vremu_vx_u32m4(v_adler32_prev_accu, BASE, vl);
-    v_buf32_accu = __riscv_vwaddu_wv_u32m4(v_buf32_accu, v_buf16_accu, vl);
+    v_adler32_prev_accu = vmacc_vx_u32m4(v_adler32_prev_accu, res / vl, v_buf32_accu, vl);
+    v_adler32_prev_accu = vremu_vx_u32m4(v_adler32_prev_accu, BASE, vl);
+    v_buf32_accu = vwaddu_wv_u32m4(v_buf32_accu, v_buf16_accu, vl);
 
-    vuint32m4_t v_seq = __riscv_vid_v_u32m4(vl);
-    vuint32m4_t v_rev_seq = __riscv_vrsub_vx_u32m4(v_seq, vl, vl);
-    vuint32m4_t v_sum32_accu = __riscv_vmul_vv_u32m4(v_buf32_accu, v_rev_seq, vl);
+    vuint32m4_t v_seq = vid_v_u32m4(vl);
+    vuint32m4_t v_rev_seq = vrsub_vx_u32m4(v_seq, vl, vl);
+    vuint32m4_t v_sum32_accu = vmul_vv_u32m4(v_buf32_accu, v_rev_seq, vl);
 
-    v_sum32_accu = __riscv_vadd_vv_u32m4(v_sum32_accu, __riscv_vmul_vx_u32m4(v_adler32_prev_accu, vl, vl), vl);
+    v_sum32_accu = vadd_vv_u32m4(v_sum32_accu, vmul_vx_u32m4(v_adler32_prev_accu, vl, vl), vl);
 
-    vuint32m1_t v_sum2_sum = __riscv_vmv_s_x_u32m1(0, vl);
-    v_sum2_sum = __riscv_vredsum_vs_u32m4_u32m1(v_sum32_accu, v_sum2_sum, vl);
-    uint32_t sum2_sum = __riscv_vmv_x_s_u32m1_u32(v_sum2_sum);
+    vuint32m1_t v_sum2_sum;
+    vmv_s_x_u32m1(v_sum2_sum, 0l, vl);
+    vredsum_vs_u32m4_u32m1(v_sum2_sum, v_sum32_accu, v_sum2_sum, vl);
+    uint32_t sum2_sum = vmv_x_s_u32m1_u32(v_sum2_sum);
 
     sum2 += (sum2_sum + adler * (len - left));
 
-    vuint32m1_t v_adler_sum = __riscv_vmv_s_x_u32m1(0, vl);
-    v_adler_sum = __riscv_vredsum_vs_u32m4_u32m1(v_buf32_accu, v_adler_sum, vl);
-    uint32_t adler_sum = __riscv_vmv_x_s_u32m1_u32(v_adler_sum);
+    vuint32m1_t v_adler_sum;
+    vmv_s_x_u32m1(v_adler_sum, 0l, vl);
+    vredsum_vs_u32m4_u32m1(v_adler_sum, v_buf32_accu, v_adler_sum, vl);
+    uint32_t adler_sum = vmv_x_s_u32m1_u32(v_adler_sum);
 
     adler += adler_sum;
 

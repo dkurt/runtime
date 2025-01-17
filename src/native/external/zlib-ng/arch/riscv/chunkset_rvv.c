@@ -22,9 +22,9 @@ do {                                                                    \
     uint##elen##_t val = *(uint##elen##_t*)from;                        \
     uint##elen##_t* chunk_p = (uint##elen##_t*)chunk;                   \
     do {                                                                \
-        vl = __riscv_vsetvl_e##elen##m4(len);                           \
-        vuint##elen##m4_t v_val = __riscv_vmv_v_x_u##elen##m4(val, vl); \
-        __riscv_vse##elen##_v_u##elen##m4(chunk_p, v_val, vl);          \
+        vl = vsetvl_e##elen##m4(len);                           \
+        vuint##elen##m4_t v_val = vmv_v_x_u##elen##m4(val, vl); \
+        vse##elen##_v_u##elen##m4(chunk_p, v_val, vl);          \
         len -= vl; chunk_p += vl;                                       \
     } while (len > 0);                                                  \
 } while (0)

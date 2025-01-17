@@ -115,6 +115,7 @@ if (CLR_CMAKE_TARGET_UNIX OR CLR_CMAKE_TARGET_BROWSER OR CLR_CMAKE_TARGET_WASI)
         add_subdirectory(System.IO.Ports.Native)
     endif ()
 
+    add_compile_options(-Wno-alloc-size-larger-than)
     if (CMAKE_C_COMPILER_ID MATCHES "Clang")
         add_compile_options(-Weverything)
         add_compile_options(-Wno-format-nonliteral)

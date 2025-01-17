@@ -143,4 +143,9 @@ fi
 
 SCAN_BUILD_COMMAND="$(command -v "scan-build$desired_version" 2> /dev/null)"
 
+if [ "$build_arch" = "riscv64" ]; then
+    CC=/usr/bin/riscv64-linux-gnu-gcc
+    CXX=/usr/bin/riscv64-linux-gnu-g++
+fi
+
 export CC CXX LDFLAGS SCAN_BUILD_COMMAND

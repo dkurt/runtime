@@ -14,10 +14,10 @@
 static inline void slide_hash_chain(Pos *table, uint32_t entries, uint16_t wsize) {
     size_t vl;
     while (entries > 0) {
-        vl = __riscv_vsetvl_e16m4(entries);
-        vuint16m4_t v_tab = __riscv_vle16_v_u16m4(table, vl);
-        vuint16m4_t v_diff = __riscv_vssubu_vx_u16m4(v_tab, wsize, vl);
-        __riscv_vse16_v_u16m4(table, v_diff, vl);
+        vl = vsetvl_e16m4(entries);
+        vuint16m4_t v_tab = vle16_v_u16m4(table, vl);
+        vuint16m4_t v_diff = vssubu_vx_u16m4(v_tab, wsize, vl);
+        vse16_v_u16m4(table, v_diff, vl);
         table += vl, entries -= vl;
     }
 }

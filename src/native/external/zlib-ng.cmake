@@ -12,7 +12,7 @@ set(ZLIBNG_ENABLE_TESTS OFF)
 set(Z_PREFIX ON)
 
 # TODO: Turn back on when Linux kernels with proper RISC-V extension detection (>= 6.5) are more commonplace
-set(WITH_RVV OFF)
+set(WITH_RVV ON)
 
 # 'aligned_alloc' is not available in browser/wasi, yet it is set by zlib-ng/CMakeLists.txt.
 if (CLR_CMAKE_TARGET_BROWSER OR CLR_CMAKE_TARGET_WASI)
