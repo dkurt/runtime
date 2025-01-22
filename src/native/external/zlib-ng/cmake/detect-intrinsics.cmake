@@ -414,7 +414,7 @@ endmacro()
 macro(check_rvv_intrinsics)
     if(NOT NATIVEFLAG)
         if(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-            set(RISCVFLAG "-march=rv64gcv")
+            set(RISCVFLAG "-march=rv64gcv0p7 -mabi=lp64d")
         endif()
     endif()
     # Check whether compiler supports RVV
